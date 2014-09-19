@@ -1,0 +1,5 @@
+/Users/gautier/Documents/Dev/csharp/bumget/bumget/obj/x86/Debug/.NETFramework,Version=v4.0.AssemblyAttribute.cs
+/Users/gautier/Documents/Dev/csharp/bumget/bumget/bin/Debug/bumget.exe.mdb
+/Users/gautier/Documents/Dev/csharp/bumget/bumget/bin/Debug/bumget.exe
+/Users/gautier/Documents/Dev/csharp/bumget/bumget/obj/x86/Debug/bumget.exe
+/Users/gautier/Documents/Dev/csharp/bumget/bumget/obj/x86/Debug/bumget.exe.mdb

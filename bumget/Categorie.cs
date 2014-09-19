@@ -4,8 +4,7 @@ namespace bumget
 {
 	public class Categorie
 	{
-		public Categorie ()
-		{
+		public Categorie (){
 		}
 	}
 }

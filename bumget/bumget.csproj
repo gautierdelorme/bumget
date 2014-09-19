@@ -38,6 +38,7 @@
     <Compile Include="Devise.cs" />
     <Compile Include="Transaction.cs" />
     <Compile Include="Categorie.cs" />
+    <Compile Include="SQLite.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
