@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using SQLite;
+using bumget;
 
 namespace bumget
 {
@@ -9,54 +10,72 @@ namespace bumget
 		[PrimaryKey, AutoIncrement]
 		public int Id {
 			get;
-			set;
+			private set;
 		}
-		private string nom;
-		public string Nom {
+
+		private string name;
+		public string Name {
 			get {
-				return nom;
+				return name;
 			}
 			set {
-				nom = value;
-				var db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "users.db"));
-				db.Execute("UPDATE Profil SET Nom = ? WHERE Id = ?",Nom,Id);
+				name = value;
+				var db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db"));
+				db.Execute("UPDATE Profil SET Name = ? WHERE Id = ?",Name,Id);
 			}
 		}
 
-		public string Prenom {
-			get;
-			set;
+		private string surname;
+		public string Surname {
+			get {
+				return surname;
+			}
+			set {
+				surname = value;
+				var db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db"));
+				db.Execute("UPDATE Profil SET Surname = ? WHERE Id = ?",Surname,Id);
+			}
 		}
 
-		public int Devise {
-			get;
-			set;
+		private int currency;
+		public int Currency {
+			get {
+				return currency;
+			}
+			set {
+				currency = value;
+				var db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db"));
+				db.Execute("UPDATE Profil SET Currency = ? WHERE Id = ?",Currency,Id);
+			}
 		}
 
-		/*public List<uint> SousCategorie {
+		/*public List<int> SousCategorie {
 			get;
 			set;
 		}*/
 
-		public Profil (string prenom, string nom, int devise) {
-			Nom = nom;
-			Prenom = prenom;
-			Devise = devise;
-			var db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "users.db"));
+		public Profil (string surname, string name, int currency) {
+			var db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db"));
 			db.CreateTable<Profil>();
+			Name = name;
+			Surname = surname;
+			Currency = currency;
 			db.Insert (this);
-			Console.WriteLine("Je suis créé ! Je suis "+Prenom+" "+Nom+".");
+			Console.WriteLine("I'm here !! I'm "+Surname+" "+Name+".");
 		}
 
 		public override string ToString() {
-			return "Je suis "+Prenom+" "+Nom+".";
+			return "I'm "+Surname+" "+Name+".";
 		}
 
 		public void Remove() {
+			var db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db"));
+			db.Delete (this);
 		}
 
-		public string PrintTransaction() {
+		public string PrintTransaction(Transaction transaction) {
 			return "";
+			//return transaction.ToString;
 		}
 
 		public string PrintResume() {
@@ -66,10 +85,10 @@ namespace bumget
 		public void AddTransaction() {
 		}
 
-		public void AddSousCategorie() {
+		public void AddSubCategory() {
 		}
 
-		public void RemoveSousCategorie() {
+		public void RemoveSubCategory() {
 		}
 	}
 }
