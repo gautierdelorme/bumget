@@ -49,23 +49,33 @@ namespace bumget
 			}
 		}
 
-		/*public List<int> SousCategorie {
-			get;
-			set;
-		}*/
+		private string subCategories;
+		public string SubCategories {
+			get {
+				return subCategories;
+			}
+			set {
+				subCategories = value;
+				var db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db"));
+				db.Execute("UPDATE Profil SET SubCategories = ? WHERE Id = ?",SubCategories,Id);
+			}
+		}
 
-		public Profil (string surname, string name, int currency) {
+		public Profil() : base() {}
+
+		public Profil (string surname, string name, int currency, string subCategories) {
 			var db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db"));
 			db.CreateTable<Profil>();
 			Name = name;
 			Surname = surname;
 			Currency = currency;
+			SubCategories = subCategories;
 			db.Insert (this);
 			Console.WriteLine("I'm here !! I'm "+Surname+" "+Name+".");
 		}
 
 		public override string ToString() {
-			return "I'm "+Surname+" "+Name+".";
+			return "I'm "+Surname+" "+Name+". I want "+Currency+" and SubCategories = "+SubCategories+".";
 		}
 
 		public void Remove() {
@@ -85,11 +95,15 @@ namespace bumget
 		public void AddTransaction() {
 		}
 
-		public void AddSubCategory() {
+		public void AddSubCategory(int idCategory) {
+			// A MODIFIER
+			var db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db"));
+			Profil User = db.Get<Profil>(Id);
+			Console.WriteLine (User.ToString ());
+			//db.Execute("UPDATE Profil SET SubCategories = ? WHERE Id = ?",User.SubCategories + "-" + idCategory.ToString(),Id);
 		}
 
 		public void RemoveSubCategory() {
 		}
 	}
 }
-
