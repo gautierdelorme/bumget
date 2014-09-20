@@ -20,7 +20,7 @@ namespace bumget
 			}
 		}
 
-		public float Name
+		public string Name
 		{
 			get{
 				return name;
@@ -30,7 +30,7 @@ namespace bumget
 			}
 		}
 
-		public float Description
+		public string Description
 		{
 			get{
 				return description;
@@ -42,8 +42,23 @@ namespace bumget
 
 		public Category ()
 		{
+			Id = 0;
+			Name = "NA";
+			Description = "Categorie inexistante";
 
 		}
+		public Category(int id, string name, string description)
+		{
+			Id = id;
+			Name = name;
+			Description = description;
+		}
+
+		public override string ToString ()
+		{
+			return "id: " + Id.ToString () + ",Name: " + Name + ",Description: " + Description;
+		}
+
 
 	}
 }
