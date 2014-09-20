@@ -39,6 +39,7 @@
     <Compile Include="Transaction.cs" />
     <Compile Include="Categorie.cs" />
     <Compile Include="SQLite.cs" />
+    <Compile Include="Category.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
