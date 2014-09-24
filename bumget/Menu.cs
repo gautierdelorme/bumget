@@ -1,14 +1,14 @@
 ﻿using System;
 using System.IO;
 using SQLite;
-
+using System.Collections.Generic;
 namespace bumget
 {
 	public class Menu
 	{
 		//Champs
 		int IsRegistered { get; set;}
-		private static SQLiteConnection db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db"));
+		private static SQLiteConnection db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db3"));
 
 		public Menu () : base (){
 		}
@@ -57,19 +57,12 @@ namespace bumget
 			string login;
 			Console.Clear ();
 
-
-
-			/*Gautier tu te démerde pour faire une requête vérifiant si le login est présent dans la base de donnée, si oui place le booléen correctLogin a true */
-			/*var sh = db.Query<Profil> ("Select * from Profil where Name=?", login);
-			foreach (var s in sh) {
-				Console.WriteLine (s);
-			}
-			*/
 			while (continuer && !correctLogin) {
 				Console.Write ("Veuillez saisir votre login : ");
 				login = Console.ReadLine ();
 				Console.WriteLine (" ");
-				if (login=="Solo") {
+				var sh = db.Query<Profil> ("SELECT Id FROM Profil WHERE Name = ?", login);
+				if (sh.Count>0) {
 					correctLogin = true;
 					Menu.UserHomePage ();
 				} else {
@@ -88,49 +81,48 @@ namespace bumget
 
 			}
 
-			
-
-
 		}
 
 		public static void ProfilCreationPage()
 		{
 			Console.Clear ();
-			bool nameExist=false;
 			bool continuer = true;
 			string name="";
 
 			//CHoix par défaut pour tester l'application
-			int devise=1;
+			int choixDevise=1;
 			string deviseSymbol;
+			Devise devise = new Devise ("$", "dollar", 1.1);
 
 			Console.Clear ();
 			Console.WriteLine ("*****ProfilCreationPage****** ");
+	
 			while (continuer) {
 				Console.Write ("Veuillez saisir votre Name : ");
 				name = Console.ReadLine ();
 				Console.WriteLine (" ");
-				/* il faut faire une requete dans la base de donnée pour vérifier si le nom existe déja, si oui nameExist=true*/
-				if (nameExist) {
-					Console.WriteLine ("Votre Nom est déja uttiliser veuillez en saisir un autre");
-				} else {
+				var sh = db.Query<Profil> ("SELECT Id FROM Profil WHERE Name = ?", name);
+				if (sh.Count == 0) {
 					continuer = false;
+
+				} else {
+					Console.WriteLine ("Votre Nom est déja uttilisé veuillez en saisir un autre");
 				}
 			}
 			Console.Write ("Veuillez saisir votre Surname : ");
 			string surname = Console.ReadLine ();
 			Console.WriteLine (" ");
-			Console.Write ("Quel devise uttilisez-vous : ");
-			deviseSymbol=Console.ReadLine ();
+			/*Console.Write ("Quel devise uttilisez-vous : ");
+			deviseSymbol=Console.ReadLine ();*/
+
 			/*Là une requete doit être faite pour récupéré le id correspondant à la devise, il serait bien aussi, d'afficher la liste des symbole des devises*/
 
-			/*Console.WriteLine ("Votre login est :" + name);
-			Profil prof = new Profil (surname, name, devise);
+			Console.WriteLine ("Votre login est :" + name);
+			Profil prof = new Profil (surname, name, devise, "");
 			Console.WriteLine(prof.ToString ());
 			Console.WriteLine ("Appuyer sur une touche pour continuer");
 			Console.ReadKey ();
-			Console.Clear ();
-			Menu.HomePage ();*/
+			Menu.HomePage ();
 
 
 		}
