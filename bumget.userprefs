@@ -1,11 +1,10 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="bumget/Category.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="bumget/Menu.cs">
     <Files>
-      <File FileName="bumget/Transaction.cs" Line="1" Column="1" />
-      <File FileName="bumget/Program.cs" Line="3" Column="3" />
-      <File FileName="bumget/Profil.cs" Line="1" Column="1" />
-      <File FileName="bumget/Category.cs" Line="16" Column="16" />
+      <File FileName="bumget/Profil.cs" Line="73" Column="73" />
+      <File FileName="bumget/Menu.cs" Line="64" Column="64" />
+      <File FileName="bumget/Program.cs" Line="4" Column="4" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
