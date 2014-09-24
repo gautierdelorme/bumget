@@ -1,92 +1,47 @@
 ﻿using System;
+using System.IO;
+using SQLite;
 
 namespace bumget
 {
 	public class Devise
 	{
-		//Champ
-		private int id;
-		private string description;
-		private string symbole;
+		private static SQLiteConnection db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db3"));
 
-		//Méthodes
-		public int Id 
+		public Devise(string symbole ,string description, double valueCAN)
 		{
-			get {
-				return id;
-			}
-			set {
-				id = value;
-			}
-		}
-		public string Description 
-		{
-			get {
-				return description;
-			}
-			set {
-				description = value;
-			}
-		}
-		public string Symbole
-		{
-			get{
-				return symbole;
-			}
-			set{
-				symbole = value;
-			}
-
-		}
-
-
-
-
-
-		public Devise ()
-		{
-			Id = 0;
-			Description = "NA";
-			Symbole = "NA";
-		}
-		public Devise(int id, string symbole)
-		{
-			Id = id;
-			Description = "NA";
-			Symbole = symbole;
-		}
-		public Devise(int id,string description ,string symbole)
-		{
-			Id = id;
+			db.CreateTable<Devise>();
 			Description = description;
 			Symbole = symbole;
+			ValueCAN = valueCAN;
+			db.Insert (this);
+			Console.WriteLine("New category with symbole : "+Symbole+".");
 		}
 
-		/// <summary>
-		/// Convert the value m to it's value in dollar CAN
-		/// </summary>
-		/// <returns>Le montant en CAN$</returns>
-		/// <param name="t">convert rates from the currency to dollar CAN </param>
-		/// <param name="m">Amount to convert</param>
-		public float ConversionCAN(float t,float m)
-		{
-			return m * t;
+		[PrimaryKey, AutoIncrement]
+		public int Id {
+			get;
+			set;
 		}
-		/// <summary>
-		/// Convert the value m in dollar CAN to it's value in the selected Currency
-		/// </summary>
-		/// <returns>Value in the selected currency</returns>
-		/// <param name="t">convert rates from dollar CAN to the selected Currency</param>
-		/// <param name="m">amount to convert</param>
-		public float ConversionCurrency(float t, float m)
-		{
-			return m * t;
+
+		public string Description {
+			get;
+			set;
+		}
+
+		public string Symbole {
+			get;
+			set;
+		}
+
+		public double ValueCAN {
+			get;
+			set;
 		}
 
 		public override string ToString ()
 		{
-			return "id: " + Id.ToString ()+ "," + Description + ",Symbole:" + Symbole;
+			return "Category with symbole : " + Symbole + " and Description : " + Description + " and value in CAN : "+ValueCAN+".";
 		}
 	}
 }
-

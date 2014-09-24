@@ -1,64 +1,41 @@
 ﻿using System;
+using System.IO;
+using SQLite;
 
 namespace bumget
 {
 	public class Category
 	{
+		private static SQLiteConnection db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db3"));
 
-		private int id;
-		private string name;
-		private string description;
-
-		public int Id
+		public Category (string name, string description)
 		{
-			get{
-				return id;
-			}
-			set{
-				id = value;
-			}
-		}
-
-		public string Name
-		{
-			get{
-				return name;
-			}
-			set{
-				name = value;
-			}
-		}
-
-		public string Description
-		{
-			get{
-				return description;
-			}
-			set{
-				description = value;
-			}
-		}
-
-		public Category ()
-		{
-			Id = 0;
-			Name = "NA";
-			Description = "Categorie inexistante";
-
-		}
-		public Category(int id, string name, string description)
-		{
-			Id = id;
+			db.CreateTable<Category>();
 			Name = name;
 			Description = description;
+			db.Insert (this);
+			Console.WriteLine("New category with name : "+Name+".");
 		}
 
-		public override string ToString ()
+		[PrimaryKey, AutoIncrement]
+		public int Id {
+			get;
+			private set;
+		}
+
+		public string Name {
+			get;
+			set;
+		}
+
+		public string Description {
+			get;
+			set;
+		}
+
+		public override string ToString()
 		{
-			return "id: " + Id.ToString () + ",Name: " + Name + ",Description: " + Description;
+			return "Category with name : " + Name + " and Description : " + Description + ".";
 		}
-
-
 	}
 }
-

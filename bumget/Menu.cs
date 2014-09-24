@@ -124,13 +124,13 @@ namespace bumget
 			deviseSymbol=Console.ReadLine ();
 			/*Là une requete doit être faite pour récupéré le id correspondant à la devise, il serait bien aussi, d'afficher la liste des symbole des devises*/
 
-			Console.WriteLine ("Votre login est :" + name);
+			/*Console.WriteLine ("Votre login est :" + name);
 			Profil prof = new Profil (surname, name, devise);
 			Console.WriteLine(prof.ToString ());
 			Console.WriteLine ("Appuyer sur une touche pour continuer");
 			Console.ReadKey ();
 			Console.Clear ();
-			Menu.HomePage ();
+			Menu.HomePage ();*/
 
 
 		}

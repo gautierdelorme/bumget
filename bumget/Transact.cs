@@ -6,30 +6,22 @@ namespace bumget
 {
 	public class Transact
 	{
-		private int ownerId;
-		private int subCategoryId;
-		private string description;
-		private DateTime date;
-		private double amount;
-		private bool expense;
-
 		private static SQLiteConnection db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db3"));
 
 		public Transact () : base() {
 		}
 
-		public Transact (int subCategoryIdT,string descriptionT,DateTime dateT,double amountT,int ownerIdT, bool expenseT)
+		public Transact (int subCategoryId,string description,DateTime date,double amount,int ownerId, bool expense)
 		{
 			db.CreateTable<Transact>();
-			SubCategoryId = subCategoryIdT;
-			Description = descriptionT;
-			Date = dateT;
-			Amount = amountT;
-			OwnerId = ownerIdT;
-			Expense = expenseT;
+			SubCategoryId = subCategoryId;
+			Description = description;
+			Date = date;
+			Amount = amount;
+			OwnerId = ownerId;
+			Expense = expense;
 			db.Insert (this);
-			Console.WriteLine("I'm here !! I'm "+description+".");
-
+			Console.WriteLine("New transaction with amount : "+Amount+".");
 		}
 
 		[PrimaryKey, AutoIncrement]
@@ -38,66 +30,34 @@ namespace bumget
 			private set;
 		}
 
-		public int OwnerId
-		{
-			get{
-				return ownerId;
-			}
-			set{
-				ownerId = value;
-			}
-
+		public int OwnerId {
+			get;
+			set;
 		}
 
-		public bool Expense
-		{
-			get{
-				return expense;
-			}
-			set{
-				expense = value;
-			}
-
+		public bool Expense {
+			get;
+			set;
 		}
 
-		public int SubCategoryId
-		{
-			get {
-				return subCategoryId;
-			}
-			set{
-				subCategoryId = value;
-			}
+		public int SubCategoryId {
+			get;
+			set;
 		}
 
-		public string Description
-		{
-			get{
-				return description;
-			}
-			set{
-				description = value;
-			}
+		public string Description {
+			get;
+			set;
 		}
 
-		public DateTime Date
-		{
-			get{
-				return date;
-			}
-			set{
-				date = value;
-			}
+		public DateTime Date {
+			get;
+			set;
 		}
 
-		public double Amount
-		{
-			get{
-				return amount;
-			}
-			set{
-				amount = value;
-			}
+		public double Amount {
+			get;
+			set;
 		}
 
 		public override string ToString()

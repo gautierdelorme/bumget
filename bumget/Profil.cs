@@ -8,22 +8,17 @@ namespace bumget
 {
 	public class Profil
 	{
-
-		private string name;
-		private string firstName;
-		private int currency;
-		private string subCategories;
-
 		private static SQLiteConnection db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db3"));
 
 		public Profil () : base() {
 		}
 
-		public Profil (string firstName, string name, int currency, string subCategories) {
+		public Profil (string firstName, string name, Devise currency, string subCategories) {
 			db.CreateTable<Profil>();
 			Name = name;
 			FirstName = firstName;
 			Currency = currency;
+			CurrencyId = currency.Id;
 			SubCategories = subCategories;
 			db.Insert (this);
 			Console.WriteLine("I'm here !! I'm "+FirstName+" "+Name+".");
@@ -36,39 +31,29 @@ namespace bumget
 		}
 
 		public string Name {
-			get {
-				return name;
-			}
-			set {
-				name = value;
-			}
+			get;
+			set;
 		}
 			
 		public string FirstName {
-			get {
-				return firstName;
-			}
-			set {
-				firstName = value;
-			}
+			get;
+			set;
 		}
 
-		public int Currency {
-			get {
-				return currency;
-			}
-			set {
-				currency = value;
-			}
+		[Ignore]
+		public Devise Currency {
+			get;
+			set;
+		}
+
+		public int CurrencyId {
+			get;
+			set;
 		}
 			
 		public string SubCategories {
-			get {
-				return subCategories;
-			}
-			set {
-				subCategories = value;
-			}
+			get;
+			set;
 		}
 			
 		public override string ToString() {
@@ -136,11 +121,11 @@ namespace bumget
 		}
 
 		public void AddTransact(int subCategoryIdT,string descriptionT,DateTime dateT,double amountT, bool expenseT) {
-			new Transact (subCategoryIdT,descriptionT,dateT,amountT,Id,expenseT);
+			new Transact (subCategoryIdT,descriptionT,dateT,amountT/Currency.ValueCAN,Id,expenseT);
 		}
 
-		public void AddSubCategory(int idCategory) {
-			SubCategories = SubCategories + "-" + idCategory.ToString();
+		public void AddSubCategory(Category Cat) {
+			SubCategories = SubCategories + "-" + Cat.Id.ToString();
 			db.Execute("UPDATE Profil SET SubCategories = ? WHERE Id = ?",SubCategories,Id);
 		}
 
@@ -149,12 +134,11 @@ namespace bumget
 			listSubCategoriesnew.Remove (idCategory.ToString());
 			SubCategories = string.Join("-", listSubCategoriesnew);
 			db.Execute("UPDATE Profil SET SubCategories = ? WHERE Id = ?",SubCategories,Id);
-
 		}
 
 		public void Synchronize()
 		{
-			db.Execute("UPDATE Profil SET Name = ?, FirstName = ?, Currency = ?, SubCategories = ? WHERE Id = ?",Name,FirstName,Currency,SubCategories,Id);
+			db.Execute("UPDATE Profil SET Name = ?, FirstName = ?, CurrencyId = ?, SubCategories = ? WHERE Id = ?",Name,FirstName,Currency.Id,SubCategories,Id);
 		}
 	}
 }
