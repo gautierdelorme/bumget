@@ -4,12 +4,11 @@ namespace bumget
 {
 	public class Category
 	{
-		//Champs
+
 		private int id;
 		private string name;
 		private string description;
 
-		//Méthodes
 		public int Id
 		{
 			get{

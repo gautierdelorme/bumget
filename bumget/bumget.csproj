@@ -36,11 +36,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Profil.cs" />
     <Compile Include="Devise.cs" />
-    <Compile Include="Transaction.cs" />
-    <Compile Include="Categorie.cs" />
     <Compile Include="SQLite.cs" />
     <Compile Include="Category.cs" />
-    <Compile Include="Menu.cs" />
+    <Compile Include="Transact.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
