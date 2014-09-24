@@ -4,12 +4,11 @@ namespace bumget
 {
 	public class Category
 	{
-		//Champs
+
 		private int id;
 		private string name;
 		private string description;
 
-		//Méthodes
 		public int Id
 		{
 			get{
@@ -20,7 +19,7 @@ namespace bumget
 			}
 		}
 
-		public float Name
+		public string Name
 		{
 			get{
 				return name;
@@ -30,7 +29,7 @@ namespace bumget
 			}
 		}
 
-		public float Description
+		public string Description
 		{
 			get{
 				return description;
