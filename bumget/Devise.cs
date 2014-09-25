@@ -15,7 +15,6 @@ namespace bumget
 			Symbole = symbole;
 			ValueCAN = valueCAN;
 			db.Insert (this);
-			Console.WriteLine("New category with symbole : "+Symbole+".");
 		}
 
 		[PrimaryKey, AutoIncrement]
@@ -37,6 +36,10 @@ namespace bumget
 		public double ValueCAN {
 			get;
 			set;
+		}
+
+		public void Remove() {
+			db.Delete (this);
 		}
 
 		public override string ToString ()

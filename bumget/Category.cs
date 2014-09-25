@@ -8,13 +8,15 @@ namespace bumget
 	{
 		private static SQLiteConnection db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db3"));
 
+		public Category () : base() {
+		}
+
 		public Category (string name, string description)
 		{
 			db.CreateTable<Category>();
 			Name = name;
 			Description = description;
 			db.Insert (this);
-			Console.WriteLine("New category with name : "+Name+".");
 		}
 
 		[PrimaryKey, AutoIncrement]
@@ -31,6 +33,10 @@ namespace bumget
 		public string Description {
 			get;
 			set;
+		}
+
+		public void Remove() {
+			db.Delete (this);
 		}
 
 		public override string ToString()

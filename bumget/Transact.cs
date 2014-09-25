@@ -21,7 +21,6 @@ namespace bumget
 			OwnerId = ownerId;
 			Expense = expense;
 			db.Insert (this);
-			Console.WriteLine("New transaction with amount : "+Amount+".");
 		}
 
 		[PrimaryKey, AutoIncrement]
@@ -60,15 +59,18 @@ namespace bumget
 			set;
 		}
 
+		public void Remove() {
+			db.Delete (this);
+		}
+
 		public override string ToString()
 		{
-			return "User :" + OwnerId + ", Montant: " + Amount + "CAN$, Date: " + Date.ToString () + ", Category : " + SubCategoryId + ", Description : " + Description + ", Expense = "+Expense;
+			return "("+Id+") User :" + OwnerId + ", Montant: " + Amount + "CAN$, Date: " + Date.ToString () + ", Category : " + SubCategoryId + ", Description : " + Description + ", Expense = "+Expense;
 		}
 
 		public void Synchronize()
 		{
 			db.Execute("UPDATE Transact SET OwnerId = ?, SubCategoryId = ?, Description = ?, Date = ?, Amount = ?, Expense = ? WHERE Id = ?",OwnerId,SubCategoryId,Description,Date,Amount,Expense,Id);
 		}
-
 	}
 }
