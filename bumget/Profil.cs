@@ -151,21 +151,79 @@ namespace bumget
 			db.Delete (transaction);
 		}
 
+		private void ManageBudget(Category Cat) {
+			bool correctChoice = false;
+			while (!correctChoice) {
+				switch (Console.ReadLine ()) {
+				case "y":
+					Console.WriteLine ("Enter the budget : ");
+					try {
+						if (getBudgetByCategoryId(Cat.Id) == null)
+							new Budget (Cat.Id, Id, Convert.ToDouble(Console.ReadLine ()));
+						else
+							Budget.Update(Convert.ToDouble(Console.ReadLine ()),Id,Cat.Id);
+					}
+					catch (System.FormatException e) {
+						Debug.WriteLine ("Exception : " + e);
+						Console.WriteLine ("Please do not use a '.' but a ','. Try again ? (y/n)");
+						break;
+					}
+					Console.WriteLine ("Budget saved. You will be able to modify it later.");
+					correctChoice = true;
+					break;
+				case "n":
+					Console.WriteLine ("No budget saved. You will be able to specify it later.");
+					correctChoice = true;
+					break;
+				default:
+					Console.WriteLine ("Enter 'y' or 'n' : ");
+					break;
+				}
+			}
+		}
+
+		public void UpdateBudgetByCategory(Category Cat) {
+			Console.WriteLine ("Do you want to update the budget for the '"+Cat.Name+"' category ? (y/n)");
+			ManageBudget (Cat);
+		}
+
 		public void AddSubCategory(Category Cat) {
-			SubCategories = SubCategories + "-" + Cat.Id.ToString();
+			if (SubCategories.Length <= 0) {
+				SubCategories = Cat.Id.ToString ();
+			} else {
+				SubCategories = SubCategories + "-" + Cat.Id.ToString ();
+			}
 			Synchronize ();
+			Console.WriteLine ("Do you want to create a budget for the '"+Cat.Name+"' category ? (y/n)");
+			ManageBudget (Cat);
 		}
 
 		public void RemoveSubCategory(Category Cat) {
 			List<string> listSubCategoriesnew = new List<string> (SubCategories.Split (new char[] { '-' }));
 			listSubCategoriesnew.Remove (Cat.Id.ToString());
 			SubCategories = string.Join("-", listSubCategoriesnew);
+			removeBudgetBySubCategoryId (Cat.Id);
 			Synchronize ();
 		}
 
 		#endregion
 
 		#region Database SQL Methods
+
+		public List<Category> getAllCategories() {
+			try {
+				List<string> listCategoriesId = new List<string> (SubCategories.Split (new char[] { '-' }));
+				List<Category> listCategories = new List<Category>();
+				foreach (string c in listCategoriesId) {
+					listCategories.Add(db.Get<Category>(Convert.ToInt32(c)));
+				}
+				return listCategories;
+			}
+			catch (System.InvalidOperationException e){
+				Debug.WriteLine ("Exception : " + e);
+				return null;
+			}
+		}
 
 		public List<Transact> getAllTransacts() {
 			try {
@@ -264,6 +322,26 @@ namespace bumget
 			}
 			catch (System.InvalidOperationException e){
 				Debug.WriteLine ("Exception : " + e);
+			}
+		}
+
+		public void removeBudgetBySubCategoryId(int id) {
+			try {
+				Budget t = db.Query<Budget> ("SELECT * FROM Budget WHERE ProfilId = ? AND SubCategoryId = ?", Id, id).First();
+				t.Remove();
+			}
+			catch (System.InvalidOperationException e){
+				Debug.WriteLine ("Exception : " + e);
+			}
+		}
+
+		public Budget getBudgetByCategoryId(int id) {
+			try {
+				return db.Query<Budget> ("SELECT * FROM Budget WHERE ProfilId = ? AND SubCategoryId = ?", Id, id).First();
+			}
+			catch (System.InvalidOperationException e){
+				Debug.WriteLine ("Exception : " + e);
+				return null;
 			}
 		}
 

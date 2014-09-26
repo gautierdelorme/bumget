@@ -20,7 +20,7 @@ namespace bumget
 		[PrimaryKey, AutoIncrement]
 		public int Id {
 			get;
-			set;
+			private set;
 		}
 
 		public string Description {
