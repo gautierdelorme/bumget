@@ -22,7 +22,7 @@ namespace bumget
 
 
 			Console.WriteLine ("************UserHomePage************** ");
-			Console.WriteLine ("Bonjour," + userProfil.Name+" ,nous sommes le :"+ DateTime.Today.ToString("d"));
+			Console.WriteLine ("Bonjour," + userProfil.Login+" ,nous sommes le :"+ DateTime.Today.ToString("d"));
 			Console.WriteLine ("Résumés de vos transactions : ");
 			Console.WriteLine ("*******************************");
 			try{
@@ -61,7 +61,7 @@ namespace bumget
 		/// <summary>
 		/// allow the user to print transactions by specified dates
 		/// </summary>
-		public static void printCustomeTransactionPage ()
+		public static void printCustomTransactionPage ()
 		{
 
 		}
@@ -93,7 +93,7 @@ namespace bumget
 					correctChoice = true;
 					break;
 				case 3:
-					User.printCustomeTransactionPage ();
+					User.printCustomTransactionPage ();
 					correctChoice = true;
 					break;
 				case 4:

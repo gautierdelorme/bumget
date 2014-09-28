@@ -23,10 +23,9 @@ namespace bumget
 		/// <param name="name">Password.</param>
 		/// <param name="currency">Currency.</param>
 		/// <param name="subCategories">Sub categories (a string with Id of subcategories like that "1-2-3").</param>
-		public Profil (string firstName, string name, string password, Devise currency, string subCategories) {
+		public Profil (string login, string password, Devise currency, string subCategories) {
 			db.CreateTable<Profil>();
-			Name = name;
-			FirstName = firstName;
+			Login = login;
 			Password = password;
 			Currency = currency;
 			CurrencyId = currency.Id;
@@ -42,12 +41,7 @@ namespace bumget
 			private set;
 		}
 
-		public string Name {
-			get;
-			set;
-		}
-			
-		public string FirstName {
+		public string Login {
 			get;
 			set;
 		}
@@ -78,7 +72,7 @@ namespace bumget
 		#region Methods
 			
 		public override string ToString() {
-			return "I'm "+FirstName+" "+Name+". I want "+Currency+" and SubCategories = "+SubCategories+".";
+			return "I'm "+Login+". I want "+Currency+" and SubCategories = "+SubCategories+".";
 		}
 
 		public void Remove() {
@@ -498,7 +492,7 @@ namespace bumget
 
 		public void Synchronize()
 		{
-			db.Execute("UPDATE Profil SET Name = ?, FirstName = ?, CurrencyId = ?, SubCategories = ?, Password = ? WHERE Id = ?",Name,FirstName,Currency.Id,SubCategories,Password,Id);
+			db.Execute("UPDATE Profil SET Login = ?, CurrencyId = ?, SubCategories = ?, Password = ? WHERE Id = ?",Login,Currency.Id,SubCategories,Password,Id);
 		}
 
 		#endregion

@@ -2,6 +2,9 @@
 using System.IO;
 using SQLite;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+
 namespace bumget
 {
 	public class Menu
@@ -13,80 +16,111 @@ namespace bumget
 		public Menu () : base (){
 		}
 
+		public static void Init() {
+			try {
+				db.Query<Profil> ("SELECT * FROM Profil");
+			}
+			catch (SQLite.SQLiteException e){
+				Debug.WriteLine ("Exception : " + e);
+
+				db.CreateTable<Profil> ();
+				db.CreateTable<Transact> ();
+				db.CreateTable<Budget> ();
+				db.CreateTable<Category> ();
+				new Category ("Restaurant", "Restaurant");
+				new Category ("Grocery", "Grocery");
+				new Category ("Rental", "Rental");
+				new Category ("Equipment", "Household");
+				new Category ("Costs", "Education costs");
+				new Category ("Supplies", "Education Supplies");
+				new Category ("Sport", "Sport");
+				new Category ("Nightlife", "Nightlife");
+				new Category ("Bus", "Bus transport");
+				new Category ("Fuel", "Fuel transport");
+
+				db.CreateTable<Devise> ();
+				new Devise ("€", "euros", 0.7);
+				new Devise ("CAD", "dollar canadian", 1);
+				new Devise ("$", "dollar canadian", 0.9);
+				new Devise ("JPY", "japanese yen", 98);
+			}
+		}
+
 
 		//Methods
 		/// <summary>
-		/// HomePage seen when the progrma is launched.
+		/// HomePage seen when the program is launched.
 		/// </summary>
 		public static void HomePage()
 		{
 			Console.Clear ();
-			Console.WriteLine ("*******Bienvenue sur GSP-Transaction******)");
-			Console.WriteLine ("Veuillez saisir un chiffre entre 1 et 2: ");
-			Console.WriteLine ("1-Vous possédez un login");
-			Console.WriteLine ("2-Nouvel uttilisateur");
-			Console.Write ("Choix: ");
-			int choix;
-
-			Console.WriteLine (" ");
-			bool saisicorrect = false;
-			while (!saisicorrect) {
-				choix= int.Parse (Console.ReadLine ());
-				Console.WriteLine (" ");
-				if (choix == 1) {
-					saisicorrect = true;
-					Menu.AuthentificationPage ();
-				} else if (choix == 2) {
-					saisicorrect = true;
-					Menu.ProfilCreationPage ();
-				} else {
-					Console.Write ("Saisi incorrect, saisissez un chiffre entre 1 et 2 : ");
-
+			Console.WriteLine ("*******Welcome in GSP-Transaction******");
+			Console.WriteLine ("Please select a number between 1 and 2: ");
+			Console.WriteLine ("1 - Log in");
+			Console.WriteLine ("2 - Sign up");
+			Console.WriteLine ("Choice : ");
+			bool correctchoice = false;
+			while (!correctchoice) {
+				try {
+					switch (Convert.ToInt32 (Console.ReadLine ())) {
+					case 1 :
+						correctchoice = true;
+						Menu.AuthentificationPage ();
+						break;
+					case 2 :
+						correctchoice = true;
+						Menu.ProfilCreationPage ();
+						break;
+					default :
+						Console.WriteLine ("Incorrect choice, select a number between 1 and 2 : ");
+						break;
+					}
 				}
-
+				catch (Exception e) {
+					Debug.WriteLine ("Exception : " + e);
+					Console.WriteLine ("Incorrect choice, select a number between 1 and 2 : ");
+				}
 			}
-
 		}
+
 		/// <summary>
-		/// Menu d'authification, pourl'instant le seul login qui marche est Solo
+		/// Allow new user to login
 		/// </summary>
-		public static Profil AuthentificationPage()
+		public static void AuthentificationPage()
 		{
 			Console.Clear ();
 			bool correctLogin = false;
-			bool continuer=true;
-			string choix;
-			string login;
-			Profil userProfile=null;
+			bool keepGoing=true;
 
-			while (continuer && !correctLogin) {
-				Console.Write ("Veuillez saisir votre login : ");
-				login = Console.ReadLine ();
-				Console.WriteLine (" ");
-				var sh = db.Query<Profil> ("SELECT * FROM Profil WHERE Name = ?", login);
-				if (sh.Count>0) {
+			while (keepGoing && !correctLogin) {
+				Console.WriteLine ("Please enter your login : ");
+				string login = Console.ReadLine ();
+				Console.WriteLine ("Please enter your password : ");
+				string password = Console.ReadLine ();
+				try {
+					Profil userProfile = db.Query<Profil> ("SELECT * FROM Profil WHERE Login = ? and Password = ?", login, password).First();
 					correctLogin = true;
-					userProfile = sh [0];
 					User.Profile = userProfile;
 					User.HomePage (userProfile);
-
-				} else {
-					Console.WriteLine ("Votre login est incorect");
-					Console.Write ("Voulez-vous recommencer? (y/n)");
-					choix = Console.ReadLine ();
-					if (choix == "n") {
-						continuer = false;
-						Console.Clear ();
-						userProfile = null;
-						Menu.HomePage ();
-					}
-
 				}
-				return userProfile;
-
+				catch (Exception e) {
+					Debug.WriteLine ("Exception : " + e);
+					Console.WriteLine ("Incorrect informations");
+					Console.WriteLine ("Try again ? (y/n)");
+					switch (Console.ReadLine ()) {
+					case "n":
+						keepGoing = false;
+						Menu.HomePage ();
+						break;
+					case "y":
+						break;
+					default:
+						keepGoing = false;
+						Menu.HomePage ();
+						break;
+					}
+				}
 			}
-			return userProfile;
-
 		}
 		/// <summary>
 		/// Allow new user to create  a new Profile
@@ -94,70 +128,89 @@ namespace bumget
 		public static void ProfilCreationPage()
 		{
 			Console.Clear ();
-
-			string name=" ";
-			string surname = "";
-			string password = "";
-			Devise userCurrency = null;
-
-			Console.Clear ();
 			Console.WriteLine ("*****ProfilCreationPage****** ");
-			//Define User name
-			name = Menu.userNameCreation ();
-			//Define user's password
-			password = Menu.userPasswordCreation ();
-			//Define user's surname
-			surname = Menu.userSurnameCreation ();
-			//Define user favourite currency
-			userCurrency = Menu.userFavouriteCurrencyCreation ();
-			Console.WriteLine ("Votre login est :" + name);
-			//User define/create his categories
-			Menu.userCategoryCreation ();
-			Profil prof = new Profil (surname, name, password, userCurrency, "");
-			Console.WriteLine(prof.ToString ());
-			Console.WriteLine ("Appuyer sur une touche pour continuer");
+
+			string login = Menu.userLoginCreation ();
+			string password = Menu.userPasswordCreation ();
+			Devise userCurrency = Menu.userFavouriteCurrencyCreation ();
+
+			Profil currentProfil = new Profil (login, password, userCurrency, "");
+
+			Menu.userCategoryCreation (currentProfil);
+
+			Console.WriteLine ("Profil saved. You will be able to log in.\nPlease push a key to continue...");
 			Console.ReadKey ();
 			Menu.HomePage ();
-
-
 		}
 
 		//Utilitary function for Menu class
 
 		/// <summary>
-		/// Allow user to create his name(login)
+		/// Allow user to create his login
 		/// </summary>
-		/// <returns>user's name</returns>
-		public static string userNameCreation()
+		/// <returns>user's login</returns>
+		public static string userLoginCreation()
 		{
-			bool nameExist=true;
-			string name="";
-			try{
-			while (nameExist) {
-				Console.Write ("Veuillez saisir votre Name : ");
-				name = Console.ReadLine ();
-				Console.WriteLine (" ");
-				var sh = db.Query<Profil> ("SELECT Id FROM Profil WHERE Name = ?", name);
-				if (sh.Count == 0) {
-					nameExist = false;
-
-				} else {
-					Console.WriteLine ("Votre Nom est déja uttilisé veuillez en saisir un autre");
+			Console.WriteLine ("Please enter a login : ");
+			string login = "";
+			while (true) {
+				try {
+					login = Console.ReadLine ();
+				}
+				catch (Exception e) {
+					Debug.WriteLine("Exception : "+e);
+					Console.WriteLine ("Please enter a correct login : ");
+				}
+				try {
+					db.Query<Profil> ("SELECT * FROM Profil WHERE Login = ?", login).First ();
+					Console.WriteLine ("Please enter an other login : ");
+				} catch (Exception e) {
+					Debug.WriteLine("Exception : "+e);
+					return login;
 				}
 			}
-			}
-			catch (SQLite.SQLiteException e) {
-				name = Console.ReadLine ();
-			}
-			return name;
 		}
 
-		public static string userSurnameCreation()
+		/// <summary>
+		/// Allow user to create his own password
+		/// </summary>
+		/// <returns>a string which contain user's password</returns>
+		public static string userPasswordCreation()
 		{
-			Console.Write ("Veuillez saisir votre Surname : ");
-			string surname = Console.ReadLine ();
-			Console.WriteLine (" ");
-			return surname;
+			Console.WriteLine ("Please enter your password : ");
+			while (true) {
+				try {
+					return Console.ReadLine ();
+				}
+				catch (Exception e) {
+					Debug.WriteLine("Exception : "+e);
+					Console.WriteLine ("Please enter a correct password : ");
+				}
+			}
+		}
+
+		/// <summary>
+		/// Ask the user for create his own subcategorie 
+		/// </summary>
+		public static void userCategoryCreation(Profil currentProfil)
+		{
+			Console.WriteLine ("Please select in what categories are you interested : ");
+			List<Category> categories = db.Query<Category> ("SELECT * FROM Category");
+			foreach (Category c  in categories) {
+				Console.WriteLine ("(ID " + c.Id +") : "+ c.Name +"("+c.Description+")");
+			}
+
+			Console.WriteLine ("Enter categories IDs separated with '-' : ");
+			List<string> listIds = new List<string> (Console.ReadLine ().Split (new char[] { '-' }));
+
+			foreach (string id in listIds) {
+				try {
+					currentProfil.AddSubCategory(db.Get<Category> (Convert.ToInt32(id)));
+				} catch (Exception e) {
+					Debug.WriteLine("Exception : "+e);
+					Console.WriteLine ("The last ID was not correct. Precedents IDs were saved. You will be able to manage your categories later.");
+				}
+			}
 		}
 
 		/// <summary>
@@ -166,105 +219,59 @@ namespace bumget
 		/// <returns>The user devise.</returns>
 		public static Devise userDeviseCreation ()
 		{
-			Devise userNewDevise;
-			Console.Write ("Saisissez le symbole de votre devise");
+			Console.WriteLine ("Enter the devise symbol : ");
 			string deviseSymbol = Console.ReadLine ();
-			Console.WriteLine (" ");
-			Console.Write ("Saisissez la description de votre devise : ");
+
+			Console.WriteLine ("Enter the devise description : ");
 			string description = Console.ReadLine ();
-			Console.WriteLine (" ");
-			Console.Write ("Saisissez la valeur en Can$ de votre devise : ");
-			int currencyRate = int.Parse (Console.ReadLine ());
-			Console.WriteLine (" ");
-			userNewDevise = new Devise (deviseSymbol, description, currencyRate);
-			return userNewDevise;
-		}
 
+			bool correctChoice = false;
+			int currencyRate = 0;
 
-		/// <summary>
-		/// Ask the user for create his own subcategorie 
-		/// </summary>
-		public static void userCategoryCreation()
-		{
-			Console.WriteLine ("Quelles sont les sous-catégories que vous souhaitez?");
-			string continueCategoryCreation="y";
-			while (continueCategoryCreation == "y") {
-
-				Console.Write ("Saisissez le Nom de la sous-catégorie : ");
-				string categoryName = Console.ReadLine ();
-				Console.WriteLine (" ");
-				Console.Write ("Saisissez la description de votre sous-catégorie: ");
-				string categoryDescription = Console.ReadLine ();
-				Category userNewCategory = new Category (categoryName, categoryDescription);
-				Console.WriteLine (" ");
-				Console.Write ("Voulez vous continuer(y/n)?");
-				continueCategoryCreation = Console.ReadLine ();
-				Console.WriteLine (" ");
+			while (!correctChoice) {
+				Console.WriteLine ("Enter the devise CAD value : ");
+				try {
+					currencyRate = Convert.ToInt32 (Console.ReadLine ());
+					correctChoice = true;
+				} catch (Exception e) {
+					Debug.WriteLine ("Exception : " + e);
+					Console.WriteLine ("Please enter a correct value (use a '.' instead of ',') : ");
+					correctChoice = false;
+				}
 			}
+			return new Devise (deviseSymbol, description, currencyRate);
 		}
-		/// <summary>
-		/// Allow user to create his own password
-		/// </summary>
-		/// <returns>a string which contain user's password</returns>
-		public static string userPasswordCreation()
-		{
-			string password;
-			Console.Write ("Veuillez saisir votre Mot de passe : ");
-			password = Console.ReadLine ();
-			return password;
 
-		}
 		/// <summary>
 		/// Allow user to choice or create his favourite devise
 		/// </summary>
 		/// <returns>The favourite currency creation.</returns>
 		public static Devise userFavouriteCurrencyCreation()
 		{
-			int Choice;
-			Devise Euro = new Devise ("€", "euros", 0.7);
-			Devise Dollar = new Devise ("$", "dollars", 1);
-			Devise userNewDevise = Dollar;
-			bool goodChoice=false;
-			Console.WriteLine ("Quel est votre devise favorite?");
+			Console.WriteLine ("Devise available : ");
 
-			Console.WriteLine ("1-" + Euro.ToString ());
-			Console.WriteLine ("2-" + Dollar.ToString ());
-			Console.WriteLine ("3-Créer une nouvelle devise");
-
-			Console.WriteLine ("Veuillez saisir votre choix : ");
-			try{
-				Choice = int.Parse (Console.ReadLine ());
-				while (goodChoice==false) {
-					switch (Choice) {
-					case 1:
-						Console.WriteLine ("Votre devise est l'euro");
-						userNewDevise = Euro;
-						goodChoice = true;
-						break;
-					case 2:
-						Console.WriteLine ("Votre devise est le dollar canadien");
-						userNewDevise = Dollar;
-						goodChoice = true;
-						break;
-					case 3:
-						userNewDevise = Menu.userDeviseCreation();
-						goodChoice = true;
-						break;
-
-					default:
-						Console.WriteLine ("Choix incorrect, veuillez saisir un chiffre entre 1,2 et 3");
+			List<Devise> devises = db.Query<Devise> ("SELECT * FROM Devise");
+			foreach (Devise d  in devises) {
+				Console.WriteLine ("(ID " + d.Id +") : "+ d.Description +"("+d.Symbole+")");
+			}
+			Console.WriteLine ("Enter the devise ID or '0' to create a new devise : ");
+			int id;
+			while (true) {
+				id = Convert.ToInt32 (Console.ReadLine ());
+				switch (id) {
+				case 0:
+					return Menu.userDeviseCreation ();
+				default:
+					try {
+						return db.Get<Devise> (id);
+					} catch (Exception e) {
+						Debug.WriteLine("Exception : "+e);
+						Console.WriteLine ("Please enter an existing ID : ");
 						break;
 					}
 				}
 			}
-			catch (Exception e) {
-				Console.WriteLine("{0} Exception caught.", e);
-			}
-			return userNewDevise;
 		}
-
 	}
-
-
 }
 

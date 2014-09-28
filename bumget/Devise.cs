@@ -8,6 +8,9 @@ namespace bumget
 	{
 		private static SQLiteConnection db = new SQLiteConnection (Path.Combine(Directory.GetCurrentDirectory(), "bumget.db3"));
 
+		public Devise () : base() {
+		}
+
 		public Devise(string symbole ,string description, double valueCAN)
 		{
 			db.CreateTable<Devise>();
@@ -44,7 +47,7 @@ namespace bumget
 
 		public override string ToString ()
 		{
-			return "Category with symbole : " + Symbole + " and Description : " + Description + " and value in CAN : "+ValueCAN+".";
+			return "Devise with symbole : " + Symbole + " and Description : " + Description + " and value in CAN : "+ValueCAN+".";
 		}
 	}
 }
