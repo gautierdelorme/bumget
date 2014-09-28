@@ -15,7 +15,9 @@ namespace bumget
 
 
 		//Methods
-
+		/// <summary>
+		/// HomePage seen when the progrma is launched.
+		/// </summary>
 		public static void HomePage()
 		{
 			Console.Clear ();
@@ -65,6 +67,7 @@ namespace bumget
 				if (sh.Count>0) {
 					correctLogin = true;
 					userProfile = sh [0];
+					User.Profile = userProfile;
 					User.HomePage (userProfile);
 
 				} else {
@@ -85,23 +88,51 @@ namespace bumget
 			return userProfile;
 
 		}
-
+		/// <summary>
+		/// Allow new user to create  a new Profile
+		/// </summary>
 		public static void ProfilCreationPage()
 		{
 			Console.Clear ();
-			bool nameExist = true;
+
 			string name=" ";
-			int Choice;
-			bool goodChoice=false;
-			//Default Currency will be Euro and Dollars
-			Devise Euro = new Devise ("€", "euros", 0.7);
-			Devise Dollar = new Devise ("$", "dollars", 1);
-			Devise userNewDevise = Dollar;
-			string continueCategoryCreation="y";
+			string surname = "";
+			string password = "";
+			Devise userCurrency = null;
 
 			Console.Clear ();
 			Console.WriteLine ("*****ProfilCreationPage****** ");
-			//er define his namesU
+			//Define User name
+			name = Menu.userNameCreation ();
+			//Define user's password
+			password = Menu.userPasswordCreation ();
+			//Define user's surname
+			surname = Menu.userSurnameCreation ();
+			//Define user favourite currency
+			userCurrency = Menu.userFavouriteCurrencyCreation ();
+			Console.WriteLine ("Votre login est :" + name);
+			//User define/create his categories
+			Menu.userCategoryCreation ();
+			Profil prof = new Profil (surname, name, password, userCurrency, "");
+			Console.WriteLine(prof.ToString ());
+			Console.WriteLine ("Appuyer sur une touche pour continuer");
+			Console.ReadKey ();
+			Menu.HomePage ();
+
+
+		}
+
+		//Utilitary function for Menu class
+
+		/// <summary>
+		/// Allow user to create his name(login)
+		/// </summary>
+		/// <returns>user's name</returns>
+		public static string userNameCreation()
+		{
+			bool nameExist=true;
+			string name="";
+			try{
 			while (nameExist) {
 				Console.Write ("Veuillez saisir votre Name : ");
 				name = Console.ReadLine ();
@@ -114,71 +145,26 @@ namespace bumget
 					Console.WriteLine ("Votre Nom est déja uttilisé veuillez en saisir un autre");
 				}
 			}
-			//user define his surname
+			}
+			catch (SQLite.SQLiteException e) {
+				name = Console.ReadLine ();
+			}
+			return name;
+		}
+
+		public static string userSurnameCreation()
+		{
 			Console.Write ("Veuillez saisir votre Surname : ");
 			string surname = Console.ReadLine ();
 			Console.WriteLine (" ");
-			//User define his favourite currency
-			Console.WriteLine ("Quel est votre devise favorite?");
-			
-			Console.WriteLine ("1-" + Euro.ToString ());
-			Console.WriteLine ("2-" + Dollar.ToString ());
-			Console.WriteLine ("3-Créer une nouvelle devise");
-
-			Console.WriteLine ("Veuillez saisir votre choix : ");
-			try{
-			Choice = int.Parse (Console.ReadLine ());
-				while (goodChoice==false) {
-					switch (Choice) {
-					case 1:
-						Console.WriteLine ("Votre devise est l'euro");
-						userNewDevise = Euro;
-						goodChoice = true;
-						break;
-					case 2:
-						Console.WriteLine ("Votre devise est le dollar canadien");
-						userNewDevise = Dollar;
-						goodChoice = true;
-						break;
-					case 3:
-						userNewDevise = Menu.deviseUserCreation();
-						goodChoice = true;
-						break;
-
-					default:
-						Console.WriteLine ("Choix incorrect, veuillez saisir un chiffre entre 1,2 et 3");
-						break;
-					}
-				}
-			}
-			catch (Exception e) {
-				Console.WriteLine("{0} Exception caught.", e);
-			}
-
-			Console.WriteLine ("Votre login est :" + name);
-			//User define/create his categories
-			Console.WriteLine ("Quelles sont les catégories que vous souhaitez?");
-			while (continueCategoryCreation=="y") {
-				Menu.categoryUserCreation ();
-				Console.Write ("Voulez vous continuer(y/n)?");
-				continueCategoryCreation = Console.ReadLine ();
-				Console.WriteLine (" ");
-			}
-			Profil prof = new Profil (surname, name,userNewDevise, "");
-			Console.WriteLine(prof.ToString ());
-			Console.WriteLine ("Appuyer sur une touche pour continuer");
-			Console.ReadKey ();
-			Menu.HomePage ();
-
-
+			return surname;
 		}
 
-		//Utilitary function of Menu class
 		/// <summary>
 		/// Allow user to create his own devise
 		/// </summary>
 		/// <returns>The user devise.</returns>
-		public static Devise deviseUserCreation ()
+		public static Devise userDeviseCreation ()
 		{
 			Devise userNewDevise;
 			Console.Write ("Saisissez le symbole de votre devise");
@@ -198,15 +184,83 @@ namespace bumget
 		/// <summary>
 		/// Ask the user for create his own subcategorie 
 		/// </summary>
-		public static void categoryUserCreation()
+		public static void userCategoryCreation()
 		{
-			Console.Write ("Saisissez le Nom de la catégorie : ");
-			string categoryName = Console.ReadLine ();
-			Console.WriteLine (" ");
-			Console.Write ("Saisissez la description de votre catégorie: ");
-			string categoryDescription = Console.ReadLine ();
-			Category userNewCategory = new Category (categoryName, categoryDescription);
-			Console.WriteLine (" ");
+			Console.WriteLine ("Quelles sont les sous-catégories que vous souhaitez?");
+			string continueCategoryCreation="y";
+			while (continueCategoryCreation == "y") {
+
+				Console.Write ("Saisissez le Nom de la sous-catégorie : ");
+				string categoryName = Console.ReadLine ();
+				Console.WriteLine (" ");
+				Console.Write ("Saisissez la description de votre sous-catégorie: ");
+				string categoryDescription = Console.ReadLine ();
+				Category userNewCategory = new Category (categoryName, categoryDescription);
+				Console.WriteLine (" ");
+				Console.Write ("Voulez vous continuer(y/n)?");
+				continueCategoryCreation = Console.ReadLine ();
+				Console.WriteLine (" ");
+			}
+		}
+		/// <summary>
+		/// Allow user to create his own password
+		/// </summary>
+		/// <returns>a string which contain user's password</returns>
+		public static string userPasswordCreation()
+		{
+			string password;
+			Console.Write ("Veuillez saisir votre Mot de passe : ");
+			password = Console.ReadLine ();
+			return password;
+
+		}
+		/// <summary>
+		/// Allow user to choice or create his favourite devise
+		/// </summary>
+		/// <returns>The favourite currency creation.</returns>
+		public static Devise userFavouriteCurrencyCreation()
+		{
+			int Choice;
+			Devise Euro = new Devise ("€", "euros", 0.7);
+			Devise Dollar = new Devise ("$", "dollars", 1);
+			Devise userNewDevise = Dollar;
+			bool goodChoice=false;
+			Console.WriteLine ("Quel est votre devise favorite?");
+
+			Console.WriteLine ("1-" + Euro.ToString ());
+			Console.WriteLine ("2-" + Dollar.ToString ());
+			Console.WriteLine ("3-Créer une nouvelle devise");
+
+			Console.WriteLine ("Veuillez saisir votre choix : ");
+			try{
+				Choice = int.Parse (Console.ReadLine ());
+				while (goodChoice==false) {
+					switch (Choice) {
+					case 1:
+						Console.WriteLine ("Votre devise est l'euro");
+						userNewDevise = Euro;
+						goodChoice = true;
+						break;
+					case 2:
+						Console.WriteLine ("Votre devise est le dollar canadien");
+						userNewDevise = Dollar;
+						goodChoice = true;
+						break;
+					case 3:
+						userNewDevise = Menu.userDeviseCreation();
+						goodChoice = true;
+						break;
+
+					default:
+						Console.WriteLine ("Choix incorrect, veuillez saisir un chiffre entre 1,2 et 3");
+						break;
+					}
+				}
+			}
+			catch (Exception e) {
+				Console.WriteLine("{0} Exception caught.", e);
+			}
+			return userNewDevise;
 		}
 
 	}
