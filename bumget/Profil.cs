@@ -15,10 +15,19 @@ namespace bumget
 		public Profil () : base() {
 		}
 
-		public Profil (string firstName, string name, Devise currency, string subCategories) {
+		/// <summary>
+		/// Initializes a new instance of the <see cref="bumget.Profil"/> class.
+		/// </summary>
+		/// <param name="firstName">First name.</param>
+		/// <param name="name">Name.</param>
+		/// <param name="name">Password.</param>
+		/// <param name="currency">Currency.</param>
+		/// <param name="subCategories">Sub categories (a string with Id of subcategories like that "1-2-3").</param>
+		public Profil (string firstName, string name, string password, Devise currency, string subCategories) {
 			db.CreateTable<Profil>();
 			Name = name;
 			FirstName = firstName;
+			Password = password;
 			Currency = currency;
 			CurrencyId = currency.Id;
 			SubCategories = subCategories;
@@ -39,6 +48,11 @@ namespace bumget
 		}
 			
 		public string FirstName {
+			get;
+			set;
+		}
+
+		public string Password {
 			get;
 			set;
 		}
@@ -143,25 +157,30 @@ namespace bumget
 			Console.WriteLine ("****************************************************");
 		}
 
-		public void AddTransact(int subCategoryIdT,string descriptionT,DateTime dateT,double amountT, bool expenseT) {
-			new Transact (subCategoryIdT,descriptionT,dateT,amountT/Currency.ValueCAN,Id,expenseT);
+		public void AddTransact(Category subCategoryT,string descriptionT,DateTime dateT,double amountT, bool expenseT) {
+			new Transact (subCategoryT.Id,descriptionT,dateT,amountT/Currency.ValueCAN,Id,expenseT);
+
+			if (isOutLimitBudget())
+				Console.WriteLine("You exceed the limits for the month !");
+			if (isOutLimitBudget(subCategoryT))
+				Console.WriteLine("You exceed the limits for the '"+subCategoryT.Name+"' category !");
 		}
 
 		public void RemoveTransact(Transact transaction) {
 			db.Delete (transaction);
 		}
 
-		private void ManageBudget(Category Cat) {
+		private void ManageBudget(int Cat) {
 			bool correctChoice = false;
 			while (!correctChoice) {
 				switch (Console.ReadLine ()) {
 				case "y":
-					Console.WriteLine ("Enter the budget : ");
+					Console.WriteLine ("Enter the budget in "+Currency.Symbole+" : ");
 					try {
-						if (getBudgetByCategoryId(Cat.Id) == null)
-							new Budget (Cat.Id, Id, Convert.ToDouble(Console.ReadLine ()));
+						if (getBudgetByCategoryId(Cat) == null)
+							new Budget (Cat, Id, Convert.ToDouble(Console.ReadLine ())/Currency.ValueCAN);
 						else
-							Budget.Update(Convert.ToDouble(Console.ReadLine ()),Id,Cat.Id);
+							Budget.Update(Convert.ToDouble(Console.ReadLine ())/Currency.ValueCAN,Id,Cat);
 					}
 					catch (System.FormatException e) {
 						Debug.WriteLine ("Exception : " + e);
@@ -182,9 +201,19 @@ namespace bumget
 			}
 		}
 
-		public void UpdateBudgetByCategory(Category Cat) {
+		public void CreateBudget() {
+			Console.WriteLine ("Do you want to create a budget for the month ? (y/n)");
+			ManageBudget (0);
+		}
+
+		public void UpdateBudget(Category Cat) {
 			Console.WriteLine ("Do you want to update the budget for the '"+Cat.Name+"' category ? (y/n)");
-			ManageBudget (Cat);
+			ManageBudget (Cat.Id);
+		}
+
+		public void UpdateBudget() {
+			Console.WriteLine ("Do you want to update the budget for the month ? (y/n)");
+			ManageBudget (0);
 		}
 
 		public void AddSubCategory(Category Cat) {
@@ -195,7 +224,7 @@ namespace bumget
 			}
 			Synchronize ();
 			Console.WriteLine ("Do you want to create a budget for the '"+Cat.Name+"' category ? (y/n)");
-			ManageBudget (Cat);
+			ManageBudget (Cat.Id);
 		}
 
 		public void RemoveSubCategory(Category Cat) {
@@ -204,6 +233,78 @@ namespace bumget
 			SubCategories = string.Join("-", listSubCategoriesnew);
 			removeBudgetBySubCategoryId (Cat.Id);
 			Synchronize ();
+		}
+
+		public void PrintBudget(Category Cat) {
+			Budget MyBudget = getBudgetByCategoryId (Cat.Id);
+			Console.WriteLine ("****************************************************");
+			if (MyBudget != null) {
+				Console.WriteLine ("** Budget for '" + Cat.Name + "' category : " + MyBudget.Value * Currency.ValueCAN + " " + Currency.Symbole);
+				Console.WriteLine ("** Total expenses for this category this month : " + getTransactsValuesThisMonth (Cat) * Currency.ValueCAN + " " + Currency.Symbole + " (" + Math.Round (100 * getTransactsValuesThisMonth (Cat) / MyBudget.Value, 
+					MidpointRounding.AwayFromZero) + "% of the budget)");
+				if (isOutLimitBudget (Cat))
+					Console.WriteLine ("** You exceed the limits for this category !");
+			}
+			else
+				Console.WriteLine ("** No budget.");
+			Console.WriteLine ("****************************************************");
+		}
+
+		public void PrintBudget() {
+			Budget MyBudget = getMensualBudget ();
+			Console.WriteLine ("****************************************************");
+			if (MyBudget != null) {
+				Console.WriteLine ("** Budget for the month : " + MyBudget.Value * Currency.ValueCAN + " " + Currency.Symbole);
+				Console.WriteLine ("** Total expenses for the month : " + getTransactsValuesThisMonth() * Currency.ValueCAN + " " + Currency.Symbole+" ("+Math.Round(100*getTransactsValuesThisMonth()/MyBudget.Value, 
+					MidpointRounding.AwayFromZero)+"% of the budget)");
+				if (isOutLimitBudget ())
+					Console.WriteLine ("** You exceed the limits for the month !");
+			}
+			else
+				Console.WriteLine ("** No budget.");
+			Console.WriteLine ("****************************************************");
+		}
+
+		public double getBudgetValue() {
+			Budget MyBudget = getMensualBudget ();
+			if (MyBudget != null)
+				return MyBudget.Value;
+			else
+				return 0;
+		}
+
+		public double getBudgetValue(Category Cat) {
+			Budget MyBudget = getBudgetByCategoryId (Cat.Id);
+			if (MyBudget != null)
+				return MyBudget.Value;
+			else
+				return 0;
+		}
+
+		public double getTransactsValuesThisMonth(Category Cat) {
+			List<Transact> transacts = getAllExpensesBySubCategoryThisMonth (Cat.Id);
+			double total = 0;
+			foreach (Transact t in transacts) {
+				total += t.Amount;
+			}
+			return total;
+		}
+
+		public double getTransactsValuesThisMonth() {
+			List<Transact> transacts = getAllExpensesThisMonth ();
+			double total = 0;
+			foreach (Transact t in transacts) {
+				total += t.Amount;
+			}
+			return total;
+		}
+
+		public bool isOutLimitBudget () {
+			return (getTransactsValuesThisMonth () > getBudgetValue ()) && (getMensualBudget () != null);
+		}
+
+		public bool isOutLimitBudget (Category Cat) {
+			return (getTransactsValuesThisMonth (Cat) > getBudgetValue (Cat)) && (getBudgetByCategoryId (Cat.Id) != null);
 		}
 
 		#endregion
@@ -265,9 +366,39 @@ namespace bumget
 			}
 		}
 
-		public List<Transact> getTransactBySubCategory(string myCategory) {
+		public List<Transact> getTransactBySubCategory(int myCategory) {
 			try {
 				return db.Query<Transact> ("SELECT * FROM Transact WHERE SubCategoryId = ? and OwnerId = ? ORDER BY SubCategoryId, Date", myCategory, Id);
+			}
+			catch (System.InvalidOperationException e){
+				Debug.WriteLine ("Exception : " + e);
+				return null;
+			}
+		}
+
+		public List<Transact> getAllExpensesBySubCategory(int myCategory) {
+			try {
+				return db.Query<Transact> ("SELECT * FROM Transact WHERE Expense = 1 and OwnerId = ? and SubCategoryId = ? ORDER BY SubCategoryId, Date", Id, myCategory);
+			}
+			catch (System.InvalidOperationException e){
+				Debug.WriteLine ("Exception : " + e);
+				return null;
+			}
+		}
+
+		public List<Transact> getAllExpensesBySubCategoryThisMonth(int myCategory) {
+			try {
+				return db.Query<Transact> ("SELECT * FROM Transact WHERE Expense = 1 and OwnerId = ? and SubCategoryId = ? and Date >= date('now', '-1 month') ORDER BY SubCategoryId, Date", Id, myCategory);
+			}
+			catch (System.InvalidOperationException e){
+				Debug.WriteLine ("Exception : " + e);
+				return null;
+			}
+		}
+
+		public List<Transact> getAllExpensesThisMonth() {
+			try {
+				return db.Query<Transact> ("SELECT * FROM Transact WHERE Expense = 1 and OwnerId = ? and Date >= date('now', '-1 month') ORDER BY SubCategoryId, Date", Id);
 			}
 			catch (System.InvalidOperationException e){
 				Debug.WriteLine ("Exception : " + e);
@@ -278,6 +409,16 @@ namespace bumget
 		public List<Transact> getAllExpenses() {
 			try {
 				return db.Query<Transact> ("SELECT * FROM Transact WHERE Expense = 1 and OwnerId = ? ORDER BY SubCategoryId, Date", Id);
+			}
+			catch (System.InvalidOperationException e){
+				Debug.WriteLine ("Exception : " + e);
+				return null;
+			}
+		}
+
+		public List<Transact> getAllEarningsBySubCategory(int myCategory) {
+			try {
+				return db.Query<Transact> ("SELECT * FROM Transact WHERE Expense = 0 and OwnerId = ? and SubCategoryId = ? ORDER BY SubCategoryId, Date", Id, myCategory);
 			}
 			catch (System.InvalidOperationException e){
 				Debug.WriteLine ("Exception : " + e);
@@ -345,9 +486,19 @@ namespace bumget
 			}
 		}
 
+		public Budget getMensualBudget() {
+			try {
+				return db.Query<Budget> ("SELECT * FROM Budget WHERE ProfilId = ? AND SubCategoryId = 0", Id).First();
+			}
+			catch (System.InvalidOperationException e){
+				Debug.WriteLine ("Exception : " + e);
+				return null;
+			}
+		}
+
 		public void Synchronize()
 		{
-			db.Execute("UPDATE Profil SET Name = ?, FirstName = ?, CurrencyId = ?, SubCategories = ? WHERE Id = ?",Name,FirstName,Currency.Id,SubCategories,Id);
+			db.Execute("UPDATE Profil SET Name = ?, FirstName = ?, CurrencyId = ?, SubCategories = ?, Password = ? WHERE Id = ?",Name,FirstName,Currency.Id,SubCategories,Password,Id);
 		}
 
 		#endregion

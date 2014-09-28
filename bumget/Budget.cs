@@ -46,6 +46,11 @@ namespace bumget
 			db.Delete (this);
 		}
 
+		public override string ToString ()
+		{
+			return "Budget with ProfilId : " + ProfilId + " and SubCategoryId : " + SubCategoryId + " and value in CAN : "+Value+".";
+		}
+
 		public static void Update(double value, int id, int categoryId) {
 			db.Execute ("UPDATE Budget SET Value = ? WHERE ProfilId = ? and SubCategoryId = ?", value, id, categoryId);
 		}
