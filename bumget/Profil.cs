@@ -76,6 +76,12 @@ namespace bumget
 		}
 
 		public void Remove() {
+			foreach (Transact t in getAllTransacts()) {
+				db.Delete (t);
+			}
+			foreach (Budget b in getAllBudget()) {
+				db.Delete (b);
+			}
 			db.Delete (this);
 		}
 
@@ -127,9 +133,13 @@ namespace bumget
 			foreach (var e in earnings) {
 				totalEarnings += e.Amount*Currency.ValueCAN;
 			}
-			Console.WriteLine ("** Total of earnings in ("+Currency.Symbole+"): " + totalEarnings +" ("+Math.Round(100*totalEarnings/(totalExpenses+totalEarnings), 
+			if (totalEarnings + totalExpenses > 0) {
+				Console.WriteLine ("** Total of earnings in ("+Currency.Symbole+"): " + totalEarnings +" ("+Math.Round(100*totalEarnings/(totalExpenses+totalEarnings), 
 				MidpointRounding.AwayFromZero)+"%)");
-			Console.WriteLine ("** Total of expenses in ("+Currency.Symbole+"): " + totalExpenses+" ("+Math.Round(100*totalExpenses/(totalExpenses+totalEarnings),MidpointRounding.AwayFromZero)+"%)\n**");
+				Console.WriteLine ("** Total of expenses in ("+Currency.Symbole+"): " + totalExpenses+" ("+Math.Round(100*totalExpenses/(totalExpenses+totalEarnings),MidpointRounding.AwayFromZero)+"%)\n**");
+			} else {
+				Console.WriteLine ("** Nothing to print...\n**");
+			}
 			Console.WriteLine ("****************************************************");
 		}
 
@@ -145,9 +155,13 @@ namespace bumget
 			foreach (var e in earnings) {
 				totalEarnings += e.Amount*Currency.ValueCAN;
 			}
-			Console.WriteLine ("** Total of earnings in ("+Currency.Symbole+"): " + totalEarnings +" ("+Math.Round(100*totalEarnings/(totalExpenses+totalEarnings), 
-				MidpointRounding.AwayFromZero)+"%)");
-			Console.WriteLine ("** Total of expenses in ("+Currency.Symbole+"): " + totalExpenses+" ("+Math.Round(100*totalExpenses/(totalExpenses+totalEarnings),MidpointRounding.AwayFromZero)+"%)\n**");
+			if (totalEarnings + totalExpenses > 0) {
+				Console.WriteLine ("** Total of earnings in (" + Currency.Symbole + "): " + totalEarnings + " (" + Math.Round (100 * totalEarnings / (totalExpenses + totalEarnings), 
+					MidpointRounding.AwayFromZero) + "%)");
+				Console.WriteLine ("** Total of expenses in (" + Currency.Symbole + "): " + totalExpenses + " (" + Math.Round (100 * totalExpenses / (totalExpenses + totalEarnings), MidpointRounding.AwayFromZero) + "%)\n**");
+			} else {
+				Console.WriteLine ("** Nothing to print...\n**");
+			}
 			Console.WriteLine ("****************************************************");
 		}
 
@@ -200,6 +214,11 @@ namespace bumget
 			ManageBudget (0);
 		}
 
+		public void CreateBudget(Category Cat) {
+			Console.WriteLine ("Do you want to create a budget for the '"+Cat.Name+"' category ? (y/n)");
+			ManageBudget (Cat.Id);
+		}
+
 		public void UpdateBudget(Category Cat) {
 			Console.WriteLine ("Do you want to update the budget for the '"+Cat.Name+"' category ? (y/n)");
 			ManageBudget (Cat.Id);
@@ -208,6 +227,22 @@ namespace bumget
 		public void UpdateBudget() {
 			Console.WriteLine ("Do you want to update the budget for the month ? (y/n)");
 			ManageBudget (0);
+		}
+
+		public void UpdateTransactById(int TransactId) {
+			Transact myTransact = db.Get<Transact> (TransactId);
+			Console.WriteLine ("Enter the new amount : ");
+			bool correctChoice = false;
+			while (!correctChoice) {
+				try {
+					myTransact.Amount = Convert.ToDouble (Console.ReadLine ())/Currency.ValueCAN;
+					correctChoice = true;
+				} catch (Exception e) {
+					Debug.WriteLine ("Exception : " + e);
+					Console.WriteLine ("Please enter a correct amount : ");
+				}
+			}
+			myTransact.Synchronize ();
 		}
 
 		public void AddSubCategory(Category Cat) {
@@ -229,6 +264,47 @@ namespace bumget
 			Synchronize ();
 		}
 
+		public void PrintCategories () {
+			Console.WriteLine ("List of your categories : ");
+			List<string> categories = new List<string> (SubCategories.Split (new char[] { '-' }));
+			foreach (string c  in categories) {
+				Category Cat = db.Get<Category> (Convert.ToInt32(c));
+				Console.WriteLine ("(ID " + Cat.Id +") : "+ Cat.Name +"("+Cat.Description+")");
+			}
+		}
+
+		public void PrintNotYoursCategories () {
+			Console.WriteLine ("List of categories you can add : ");
+			List<string> categories = new List<string> (SubCategories.Split (new char[] { '-' }));
+			List<Category> categoriesId = db.Query<Category> ("SELECT * FROM Category"); 
+			foreach (Category Cat  in categoriesId) {
+				if (!categories.Contains(Convert.ToString(Cat.Id))) {
+					Console.WriteLine ("(ID " + Cat.Id +") : "+ Cat.Name +"("+Cat.Description+")");
+				}
+			}
+		}
+
+		public List<int> getNotYoursCategoriesId () {
+			List<string> categories = new List<string> (SubCategories.Split (new char[] { '-' }));
+			List<Category> categoriesObject = db.Query<Category> ("SELECT * FROM Category"); 
+			List<int> categoriesId = new List<int> ();
+			foreach (Category Cat  in categoriesObject) {
+				if (!categories.Contains (Convert.ToString (Cat.Id))) {
+					categoriesId.Add (Cat.Id);
+				}
+			}
+			return categoriesId;
+		}
+
+		public List<int> getCategoriesId () {
+			List<string> categories = new List<string> (SubCategories.Split (new char[] { '-' }));
+			List<int> categoriesId = new List<int> ();
+			foreach (string c  in categories) {
+				categoriesId.Add(Convert.ToInt32(c));
+			}
+			return categoriesId;
+		}
+			
 		public void PrintBudget(Category Cat) {
 			Budget MyBudget = getBudgetByCategoryId (Cat.Id);
 			Console.WriteLine ("****************************************************");
@@ -451,13 +527,8 @@ namespace bumget
 		}
 
 		public void removeTransacById(int id) {
-			try {
-				Transact t = db.Query<Transact> ("SELECT * FROM Transact WHERE OwnerId = ? AND Id = ?", Id, id).First();
-				t.Remove();
-			}
-			catch (System.InvalidOperationException e){
-				Debug.WriteLine ("Exception : " + e);
-			}
+			Transact t = db.Query<Transact> ("SELECT * FROM Transact WHERE OwnerId = ? AND Id = ?", Id, id).First();
+			t.Remove();
 		}
 
 		public void removeBudgetBySubCategoryId(int id) {
@@ -483,6 +554,16 @@ namespace bumget
 		public Budget getMensualBudget() {
 			try {
 				return db.Query<Budget> ("SELECT * FROM Budget WHERE ProfilId = ? AND SubCategoryId = 0", Id).First();
+			}
+			catch (System.InvalidOperationException e){
+				Debug.WriteLine ("Exception : " + e);
+				return null;
+			}
+		}
+
+		public List<Budget> getAllBudget() {
+			try {
+				return db.Query<Budget> ("SELECT * FROM Budget WHERE ProfilId = ?", Id);
 			}
 			catch (System.InvalidOperationException e){
 				Debug.WriteLine ("Exception : " + e);

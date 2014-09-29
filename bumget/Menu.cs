@@ -40,8 +40,8 @@ namespace bumget
 
 				db.CreateTable<Devise> ();
 				new Devise ("€", "euros", 0.7);
-				new Devise ("CAD", "dollar canadian", 1);
-				new Devise ("$", "dollar canadian", 0.9);
+				new Devise ("CAD", "canadian dollar", 1);
+				new Devise ("$", "american dollar", 0.9);
 				new Devise ("JPY", "japanese yen", 98);
 			}
 		}
@@ -54,7 +54,9 @@ namespace bumget
 		public static void HomePage()
 		{
 			Console.Clear ();
-			Console.WriteLine ("*******Welcome in GSP-Transaction******");
+			Console.WriteLine ("*****************************************");
+			Console.WriteLine ("******* Welcome in GSP-Transaction ******");
+			Console.WriteLine ("*****************************************");
 			Console.WriteLine ("Please select a number between 1 and 2: ");
 			Console.WriteLine ("1 - Log in");
 			Console.WriteLine ("2 - Sign up");
@@ -89,6 +91,10 @@ namespace bumget
 		public static void AuthentificationPage()
 		{
 			Console.Clear ();
+			Console.WriteLine ("*******************************");
+			Console.WriteLine ("**** Authentification Page ****");
+			Console.WriteLine ("*******************************");
+
 			bool correctLogin = false;
 			bool keepGoing=true;
 
@@ -99,9 +105,10 @@ namespace bumget
 				string password = Console.ReadLine ();
 				try {
 					Profil userProfile = db.Query<Profil> ("SELECT * FROM Profil WHERE Login = ? and Password = ?", login, password).First();
+					userProfile.Currency = db.Get<Devise>(userProfile.CurrencyId);
 					correctLogin = true;
-					User.Profile = userProfile;
-					User.HomePage (userProfile);
+					User.CurrentUser = userProfile;
+					User.HomePage ();
 				}
 				catch (Exception e) {
 					Debug.WriteLine ("Exception : " + e);
@@ -128,7 +135,9 @@ namespace bumget
 		public static void ProfilCreationPage()
 		{
 			Console.Clear ();
-			Console.WriteLine ("*****ProfilCreationPage****** ");
+			Console.WriteLine ("*******************************");
+			Console.WriteLine ("**** Profil Creation Page *****");
+			Console.WriteLine ("*******************************");
 
 			string login = Menu.userLoginCreation ();
 			string password = Menu.userPasswordCreation ();
@@ -137,8 +146,9 @@ namespace bumget
 			Profil currentProfil = new Profil (login, password, userCurrency, "");
 
 			Menu.userCategoryCreation (currentProfil);
-
+			Console.WriteLine ("\n****************************************");
 			Console.WriteLine ("Profil saved. You will be able to log in.\nPlease push a key to continue...");
+			Console.WriteLine ("******************************************");
 			Console.ReadKey ();
 			Menu.HomePage ();
 		}
@@ -226,12 +236,12 @@ namespace bumget
 			string description = Console.ReadLine ();
 
 			bool correctChoice = false;
-			int currencyRate = 0;
+			double currencyRate = 0;
 
 			while (!correctChoice) {
 				Console.WriteLine ("Enter the devise CAD value : ");
 				try {
-					currencyRate = Convert.ToInt32 (Console.ReadLine ());
+					currencyRate = Convert.ToDouble (Console.ReadLine ());
 					correctChoice = true;
 				} catch (Exception e) {
 					Debug.WriteLine ("Exception : " + e);
@@ -257,20 +267,21 @@ namespace bumget
 			Console.WriteLine ("Enter the devise ID or '0' to create a new devise : ");
 			int id;
 			while (true) {
-				id = Convert.ToInt32 (Console.ReadLine ());
-				switch (id) {
-				case 0:
-					return Menu.userDeviseCreation ();
-				default:
-					try {
+				try {
+					id = Convert.ToInt32 (Console.ReadLine ());
+					switch (id) {
+					case 0:
+						return Menu.userDeviseCreation ();
+					default:
 						return db.Get<Devise> (id);
-					} catch (Exception e) {
-						Debug.WriteLine("Exception : "+e);
-						Console.WriteLine ("Please enter an existing ID : ");
-						break;
 					}
+				} catch (Exception e) {
+					Debug.WriteLine("Exception : "+e);
+					Console.WriteLine ("Please enter an existing ID : ");
+					break;
 				}
 			}
+			return null;
 		}
 	}
 }
