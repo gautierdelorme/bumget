@@ -1,4 +1,8 @@
-﻿using System;
+﻿// BAGAYOGO Souleymane
+// FOURCADE Pierre-Ange
+// DELORME Gautier
+
+using System;
 using System.IO;
 using bumget;
 using SQLite;

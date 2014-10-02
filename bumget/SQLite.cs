@@ -1,4 +1,8 @@
-﻿//
+﻿// BAGAYOGO Souleymane
+// FOURCADE Pierre-Ange
+// DELORME Gautier
+
+//
 // Copyright (c) 2009-2014 Krueger Systems, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
